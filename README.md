@@ -2,9 +2,7 @@
 
 ## Group Members
 
-Please modify this section and list your group members in this format.
-
-Example Name ename@nowhere.com
+Miguel Mancera miguelmancera997@yahoo.com
 
 ## Instructions
 
