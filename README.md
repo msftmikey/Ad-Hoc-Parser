@@ -4,6 +4,8 @@
 
 Miguel Mancera miguelmancera997@yahoo.com
 
+Joshua Tamara jtamara@csu.fullerton.edu
+
 ## Instructions
 
 Please refer to the this [document](https://docs.google.com/document/d/1KFDDcofkGmQhKwELfRZvNcWfIdbz2B-TtWw1dDEwkyY/edit?usp=sharing).
