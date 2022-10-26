@@ -149,7 +149,22 @@ PTPtr<std::string> Parser::parseFactor() {
     PTPtr<std::string> factorNode =
         std::make_shared<PTNode<std::string>>("factor");
 
-        this->tryMatchTerminal(this->getNextToken(), {RIGHT_PAREN, NUMBER_LITERAL, IDENTIFIER}, factorNode);
+        PTPtr<std::string> Parser::parseFactor() {
+    PTPtr<std::string> factorNode =
+        std::make_shared<PTNode<std::string>>("factor");
+        if(this->peekNextToken().type == IDENTIFIER) {
+          this->tryMatchTerminal(this->getNextToken(), IDENTIFIER, factorNode);
+        }
+        else if(this->peekNextToken().type == NUMBER_LITERAL) {
+          this->tryMatchTerminal(this->getNextToken(), NUMBER_LITERAL, factorNode);
+        }
+        else if (this->peekNextToken().type == LEFT_PAREN) {
+          this->tryMatchTerminal(this->getNextToken(), LEFT_PAREN, factorNode);
+          factorNode->addChild(this->parseExpression());
+          this->tryMatchTerminal(this->getNextToken(), RIGHT_PAREN. factorNode);
+        }
+    return factorNode;
+}
     return factorNode;
 }
 
