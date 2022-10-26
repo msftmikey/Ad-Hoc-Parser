@@ -148,7 +148,7 @@ PTPtr<std::string> Parser::parseTerm() {
 PTPtr<std::string> Parser::parseFactor() {
     PTPtr<std::string> factorNode =
         std::make_shared<PTNode<std::string>>("factor");
-    
+
         if(this->peekNextToken().type == IDENTIFIER) {
           this->tryMatchTerminal(this->getNextToken(), IDENTIFIER, factorNode);
         }
@@ -158,7 +158,7 @@ PTPtr<std::string> Parser::parseFactor() {
         else if (this->peekNextToken().type == LEFT_PAREN) {
           this->tryMatchTerminal(this->getNextToken(), LEFT_PAREN, factorNode);
           factorNode->addChild(this->parseExpression());
-          this->tryMatchTerminal(this->getNextToken(), RIGHT_PAREN. factorNode);
+          this->tryMatchTerminal(this->getNextToken(), RIGHT_PAREN, factorNode);
         }
     return factorNode;
 }
