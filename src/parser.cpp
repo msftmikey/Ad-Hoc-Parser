@@ -45,10 +45,16 @@ PTPtr<std::string> Parser::parseProgram() {
 PTPtr<std::string> Parser::parseBlock() {
     PTPtr<std::string> blockNode =
         std::make_shared<PTNode<std::string>>("block");
-    blockNode->addChild(this->parseConstDeclarations());
-    blockNode->addChild(this->parseVarDeclarations());
-    blockNode->addChild(this->parseProcedure());
-    blockNode->addChild(this->parseStatement());
+        while (this->peekNextToken().type == CONST_KEYWORD){
+           blockNode->addChild(this->parseConstDeclarations());
+         }
+         while (this->peekNextToken().type == VAR_KEYWORD){
+           blockNode->addChild(this->parseVarDeclarations());
+         }
+         while (this->peekNextToken().type == PROCEDURE_KEYWORD){
+           blockNode->addChild(this->parseProcedure());
+         }
+         varDeclNode->addChild(this->parseStatement());
 
 
 
