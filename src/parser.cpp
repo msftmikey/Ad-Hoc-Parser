@@ -43,129 +43,214 @@ PTPtr<std::string> Parser::parseProgram() {
 }
 
 PTPtr<std::string> Parser::parseBlock() {
-    PTPtr<std::string> blockNode =
+    PTPtr<std::string> blockNode = 
         std::make_shared<PTNode<std::string>>("block");
-        while (this->peekNextToken().type == CONST_KEYWORD){
-           blockNode->addChild(this->parseConstDeclarations());
-         }
-         while (this->peekNextToken().type == VAR_KEYWORD){
-           blockNode->addChild(this->parseVarDeclarations());
-         }
-         while (this->peekNextToken().type == PROCEDURE_KEYWORD){
-           blockNode->addChild(this->parseProcedure());
-         }
-         blockNode->addChild(this->parseStatement());
-
-
-
-    //this->tryMatchTerminal(this->getNextToken(), {RIGHT_PAREN, NUMBER_LITERAL, IDENTIFIER, END_KEYWORD}, blockNode);
-
+    
+    while(peekNextToken().type == CONST_KEYWORD){
+        blockNode->addChild(this->parseConstDeclarations());
+    }
+    while(peekNextToken().type == VAR_KEYWORD){
+        blockNode->addChild(this->parseVarDeclarations());
+    }
+    while(peekNextToken().type == PROCEDURE_KEYWORD){
+        blockNode->addChild(this->parseProcedure());
+    }
+    blockNode->addChild(this->parseStatement());
     return blockNode;
 }
 
 PTPtr<std::string> Parser::parseConstDeclarations() {
-    PTPtr<std::string> constDeclNode =
+    PTPtr<std::string> constDeclNode = 
         std::make_shared<PTNode<std::string>>("const_declaration");
+    this->tryMatchTerminal(this->getNextToken(), CONST_KEYWORD, constDeclNode);
+    this->tryMatchTerminal(this->getNextToken(), IDENTIFIER, constDeclNode);
+    this->tryMatchTerminal(this->getNextToken(), EQUALS, constDeclNode);
+    this->tryMatchTerminal(this->getNextToken(), NUMBER_LITERAL, constDeclNode);
+    constDeclNode->addChild(this->parseConstDeclarationList());
+    this->tryMatchTerminal(this->getNextToken(), SEMICOLON, constDeclNode);
 
-      constDeclNode->addChild(this->parseConstDeclarationList());
-
-      /*if (constDeclNode == CONST_KEYWORD) {
-        // ACTIONS
-      }*/
-
-      this->tryMatchTerminal(this->getNextToken(), SEMICOLON, constDeclNode);
+     
     return constDeclNode;
 }
 
 PTPtr<std::string> Parser::parseConstDeclarationList() {
-    PTPtr<std::string> constDeclListNode =
+    PTPtr<std::string> constDeclListNode = 
         std::make_shared<PTNode<std::string>>("const_declaration_list");
 
-        constDeclListNode->addChild(this->parseVarDeclarations());
 
+    while (peekNextToken().type == COMMA){
+        this->tryMatchTerminal(this->getNextToken(), COMMA, constDeclListNode);
+        this->tryMatchTerminal(this->getNextToken(), IDENTIFIER, constDeclListNode);
+        this->tryMatchTerminal(this->getNextToken(), EQUALS, constDeclListNode);
         this->tryMatchTerminal(this->getNextToken(), NUMBER_LITERAL, constDeclListNode);
+    }
     return constDeclListNode;
 }
 
 PTPtr<std::string> Parser::parseVarDeclarations() {
-    PTPtr<std::string> varDeclNode =
+    PTPtr<std::string> varDeclNode = 
         std::make_shared<PTNode<std::string>>("var_declaration");
-        varDeclNode->addChild(this->parseVarDeclarationList());
+        
 
-        /*
-        if (varDeclNode == VAR_KEYWORD) {
-          ACTIONS
-        }
-        */
-
-
-
-        this->tryMatchTerminal(this->getNextToken(), {RIGHT_PAREN, NUMBER_LITERAL, IDENTIFIER}, varDeclNode);
+    this->tryMatchTerminal(this->getNextToken(), VAR_KEYWORD, varDeclNode);
+    this->tryMatchTerminal(this->getNextToken(), IDENTIFIER, varDeclNode);
+    varDeclNode->addChild(this->parseVarDeclarationList());
+    this->tryMatchTerminal(this->getNextToken(), SEMICOLON, varDeclNode);
     return varDeclNode;
 }
 
 PTPtr<std::string> Parser::parseVarDeclarationList() {
-    PTPtr<std::string> varDeclNodeList =
+    PTPtr<std::string> varDeclNodeList = 
         std::make_shared<PTNode<std::string>>("var_declaration_list");
-        varDeclNodeList->addChild(this->parseProcedure());
-        this->tryMatchTerminal(this->getNextToken(), {RIGHT_PAREN, NUMBER_LITERAL, IDENTIFIER}, varDeclNodeList);
+    while(peekNextToken().type == COMMA){
+        this->tryMatchTerminal(this->getNextToken(), COMMA, varDeclNodeList);
+        this->tryMatchTerminal(this->getNextToken(), IDENTIFIER, varDeclNodeList);
+    }
     return varDeclNodeList;
 }
 
 PTPtr<std::string> Parser::parseProcedure() {
-    PTPtr<std::string> procedure =
+    PTPtr<std::string> procedure = 
         std::make_shared<PTNode<std::string>>("procedure");
-        procedure->addChild(this->parseStatement());
-        this->tryMatchTerminal(this->getNextToken(), SEMICOLON, procedure);
+        
+
+    this->tryMatchTerminal(this->getNextToken(), PROCEDURE_KEYWORD, procedure);
+    this->tryMatchTerminal(this->getNextToken(), IDENTIFIER, procedure);
+    this->tryMatchTerminal(this->getNextToken(), SEMICOLON, procedure);
+    procedure->addChild(this->parseBlock());
+    this->tryMatchTerminal(this->getNextToken(), SEMICOLON, procedure);
     return procedure;
 }
 
 PTPtr<std::string> Parser::parseStatement() {
-    PTPtr<std::string> statementNode =
+    PTPtr<std::string> statementNode = 
         std::make_shared<PTNode<std::string>>("statement");
-        statementNode->addChild(this->parseCondition());
-        this->tryMatchTerminal(this->getNextToken(), {RIGHT_PAREN, NUMBER_LITERAL, IDENTIFIER, END_KEYWORD}, statementNode);
+        
+
+    token_class_t iterativeTokens[7] = {IDENTIFIER, CALL_KEYWORD, READ_OP, WRITE_OP, BEGIN_KEYWORD, IF_KEYWORD, WHILE_KEYWORD};
+    bool iterate = false;
+    do{
+        iterate = false;
+        switch(peekNextToken().type){
+            case IDENTIFIER:
+                this->tryMatchTerminal(this->getNextToken(), IDENTIFIER, statementNode);
+                this->tryMatchTerminal(this->getNextToken(), DEFINE_EQUALS, statementNode);
+                statementNode->addChild(this->parseExpression());
+                break;
+            case CALL_KEYWORD:
+                this->tryMatchTerminal(this->getNextToken(), CALL_KEYWORD, statementNode);
+                this->tryMatchTerminal(this->getNextToken(), IDENTIFIER, statementNode);
+                break;
+            case READ_OP:
+                this->tryMatchTerminal(this->getNextToken(), READ_OP, statementNode);
+                this->tryMatchTerminal(this->getNextToken(), IDENTIFIER, statementNode);
+                break;
+            case WRITE_OP:
+                this->tryMatchTerminal(this->getNextToken(), WRITE_OP, statementNode);
+                statementNode->addChild(this->parseExpression());
+                break;
+            case BEGIN_KEYWORD:
+                this->tryMatchTerminal(this->getNextToken(), BEGIN_KEYWORD, statementNode);
+                statementNode->addChild(this->parseStatement());
+                while (peekNextToken().type == SEMICOLON){
+                    this->tryMatchTerminal(this->getNextToken(), SEMICOLON, statementNode);
+                    statementNode->addChild(this->parseStatement());  
+                }
+                this->tryMatchTerminal(this->getNextToken(), END_KEYWORD, statementNode);
+                break;
+            case IF_KEYWORD:
+                this->tryMatchTerminal(this->getNextToken(), IF_KEYWORD, statementNode);
+                statementNode->addChild(this->parseCondition());
+                this->tryMatchTerminal(this->getNextToken(), THEN_KEYWORD, statementNode);
+                statementNode->addChild(this->parseStatement());
+                break;
+            case WHILE_KEYWORD:
+                this->tryMatchTerminal(this->getNextToken(), WHILE_KEYWORD, statementNode);
+                statementNode->addChild(this->parseCondition());
+                this->tryMatchTerminal(this->getNextToken(), DO_KEYWORD, statementNode);
+                statementNode->addChild(this->parseStatement());
+                break;
+            default:
+                break;
+        }
+        for (int i = 0; i < 7; ++i){
+            if (peekNextToken().type == iterativeTokens[i]){
+                iterate = true;
+                break;
+            }
+        }
+    }while(iterate);
     return statementNode;
 }
 
 PTPtr<std::string> Parser::parseCondition() {
-    PTPtr<std::string> conditionNode =
+    PTPtr<std::string> conditionNode = 
         std::make_shared<PTNode<std::string>>("condition");
-     conditionNode->addChild(this->parseExpression());
-     this->tryMatchTerminal(this->getNextToken(), {RIGHT_PAREN, NUMBER_LITERAL, IDENTIFIER}, conditionNode);
+    if(peekNextToken().type == ODD_OP){
+        this->tryMatchTerminal(this->getNextToken(), ODD_OP, conditionNode);
+        conditionNode->addChild(this->parseExpression());
+    }
+    else{
+        conditionNode->addChild(this->parseExpression());
+        switch(peekNextToken().type){
+            case EQUALS:
+                this->tryMatchTerminal(this->getNextToken(), EQUALS, conditionNode);
+                break;
+            case COMPARE_OP:
+                this->tryMatchTerminal(this->getNextToken(), COMPARE_OP, conditionNode);
+                break;
+            default:
+                break;
+                break;
+        }
+        conditionNode->addChild(this->parseExpression());
+    }
     return conditionNode;
 }
 
 PTPtr<std::string> Parser::parseExpression() {
-    PTPtr<std::string> expressionNode =
+    PTPtr<std::string> expressionNode = 
         std::make_shared<PTNode<std::string>>("expression");
+        
+    while(peekNextToken().type == ADD_OP){
+        std::cout << "ADD_OP" << std::endl;
+        this->tryMatchTerminal(this->getNextToken(), ADD_OP, expressionNode);
+    }
+    expressionNode->addChild(this->parseTerm());
+    while(peekNextToken().type == ADD_OP){
+        this->tryMatchTerminal(this->getNextToken(), ADD_OP, expressionNode);
         expressionNode->addChild(this->parseTerm());
-        this->tryMatchTerminal(this->getNextToken(), {RIGHT_PAREN, NUMBER_LITERAL, IDENTIFIER}, expressionNode);
+    }
     return expressionNode;
 }
 
 PTPtr<std::string> Parser::parseTerm() {
     PTPtr<std::string> termNode = std::make_shared<PTNode<std::string>>("term");
+    
+
     termNode->addChild(this->parseFactor());
-    this->tryMatchTerminal(this->getNextToken(), {RIGHT_PAREN, NUMBER_LITERAL, IDENTIFIER}, termNode);
+    while(peekNextToken().type == MUL_OP){
+        this->tryMatchTerminal(this->getNextToken(), MUL_OP, termNode);
+        termNode->addChild(this->parseFactor());
+    }
     return termNode;
 }
 
 PTPtr<std::string> Parser::parseFactor() {
-    PTPtr<std::string> factorNode =
+    PTPtr<std::string> factorNode = 
         std::make_shared<PTNode<std::string>>("factor");
 
-        if(this->peekNextToken().type == IDENTIFIER) {
-          this->tryMatchTerminal(this->getNextToken(), IDENTIFIER, factorNode);
-        }
-        else if(this->peekNextToken().type == NUMBER_LITERAL) {
-          this->tryMatchTerminal(this->getNextToken(), NUMBER_LITERAL, factorNode);
-        }
-        else if (this->peekNextToken().type == LEFT_PAREN) {
-          this->tryMatchTerminal(this->getNextToken(), LEFT_PAREN, factorNode);
-          factorNode->addChild(this->parseExpression());
-          this->tryMatchTerminal(this->getNextToken(), RIGHT_PAREN, factorNode);
-        }
+    if (peekNextToken().type == IDENTIFIER){
+        this->tryMatchTerminal(this->getNextToken(), IDENTIFIER, factorNode);
+    }  
+    else if (peekNextToken().type == NUMBER_LITERAL){
+        this->tryMatchTerminal(this->getNextToken(), NUMBER_LITERAL, factorNode);
+    }
+    else if (peekNextToken().type == LEFT_PAREN){
+        this->tryMatchTerminal(this->getNextToken(), LEFT_PAREN, factorNode);
+        factorNode->addChild(this->parseExpression());
+        this->tryMatchTerminal(this->getNextToken(), RIGHT_PAREN, factorNode);
+    }
     return factorNode;
 }
 
