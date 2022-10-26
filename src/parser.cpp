@@ -54,7 +54,7 @@ PTPtr<std::string> Parser::parseBlock() {
          while (this->peekNextToken().type == PROCEDURE_KEYWORD){
            blockNode->addChild(this->parseProcedure());
          }
-         varDeclNode->addChild(this->parseStatement());
+         blockNode->addChild(this->parseStatement());
 
 
 
