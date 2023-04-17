@@ -1,4 +1,4 @@
-# CPSC 323 Project 2: Ad hoc PL/0 Parser
+# CPSC 323: Ad Hoc PL/0 Parser
 
 ## Group Members
 
