@@ -2,7 +2,7 @@
 
 ## Group Members
 
-Miguel Mancera miguelmancera997@yahoo.com
+Miguel Mancera miguelmancera997@csu.fullerton.edu
 
 Joshua Tamara jtamara@csu.fullerton.edu
 
